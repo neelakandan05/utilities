@@ -2,12 +2,11 @@ FROM centos:7
 
 RUN yum -y install openssh-server && \
     yum -y install git && \
-    yum -y install docker && \
-    yum -y install wget
+    yum -y install wget && \
+    yum clean all
   
 RUN echo "root:password" | chpasswd  
 RUN useradd jenkins  
-RUN echo "jenkins:jenkins" | chpasswd  
 
 RUN wget -P /opt/ --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u66-b17/jdk-8u66-linux-x64.tar.gz \
     && tar xzf /opt/jdk-8u66-linux-x64.tar.gz -C /opt \
