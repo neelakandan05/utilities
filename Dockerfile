@@ -2,6 +2,7 @@ FROM centos:7
 
 RUN yum -y install openssh-server && \
     yum -y install git && \
+    yum install docker && \
     yum -y install wget && \
     yum clean all
   
