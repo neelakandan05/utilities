@@ -26,7 +26,7 @@ RUN mkdir -p /var/run/sshd
 RUN ssh-keygen -A
 RUN sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd  
    
-EXPOSE 22  
+EXPOSE 22
 
 RUN ["java","-version"]
 CMD ["/usr/sbin/sshd", "-D"] 
