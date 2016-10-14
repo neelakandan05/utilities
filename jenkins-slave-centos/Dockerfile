@@ -1,8 +1,8 @@
 FROM centos:7
 
 RUN yum -y install git && \
-    yum -y install docker && \
     yum -y install wget && \
+    yum -y install sudo && \
     yum clean all
   
 RUN echo "root:password" | chpasswd  
@@ -31,6 +31,17 @@ RUN curl --create-dirs -sSLo /usr/share/jenkins/remoting-$JENKINS_REMOTING_VERSI
 COPY jenkins-slave.sh /usr/local/bin/jenkins-slave.sh
 
 RUN chmod 755 /usr/local/bin/jenkins-slave.sh
+
+ADD https://get.docker.com/builds/Linux/x86_64/docker-1.11.0.tgz /
+
+RUN tar -xvzf /docker-1.11.0.tgz && mv docker/* /usr/bin/
+
+RUN groupadd docker \
+    && usermod -a -G docker jenkins \
+    && usermod -a -G wheel jenkins
+
+# Enable passwordless sudo for users under the "sudo" group
+RUN  sed -i.bkp -e  's/%wheel\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%wheel ALL=NOPASSWD:ALL/g' /etc/sudoers
 
 USER jenkins
 
