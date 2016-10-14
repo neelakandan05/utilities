@@ -1,8 +1,9 @@
 FROM centos:7
 
-RUN yum -y install git && \
+RUN yum -y install openssh-server && \
+    yum -y install git && \
+    yum -y install docker && \
     yum -y install wget && \
-    yum -y install sudo && \
     yum clean all
   
 RUN echo "root:password" | chpasswd  
@@ -17,34 +18,15 @@ RUN alternatives --install /usr/bin/java java /opt/jdk1.8.0_66/bin/java 2 \
     && alternatives --install /usr/bin/javac javac /opt/jdk1.8.0_66/bin/javac 2 \
     && alternatives --set jar /opt/jdk1.8.0_66/bin/jar \
     && alternatives --set javac /opt/jdk1.8.0_66/bin/javac
-
-ENV HOME /home/jenkins  
+    
 ENV JAVA_HOME /opt/jdk1.8.0_66
 ENV JRE_HOME /opt/jdk1.8.0_66/jre
-ENV JENKINS_REMOTING_VERSION 2.52
   
+RUN mkdir -p /var/run/sshd  
+RUN ssh-keygen -A
+RUN sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd  
+   
+EXPOSE 22
+
 RUN ["java","-version"]
-
-RUN curl --create-dirs -sSLo /usr/share/jenkins/remoting-$JENKINS_REMOTING_VERSION.jar http://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/$JENKINS_REMOTING_VERSION/remoting-$JENKINS_REMOTING_VERSION.jar \
-  && chmod 755 /usr/share/jenkins
-
-COPY jenkins-slave.sh /usr/local/bin/jenkins-slave.sh
-
-RUN chmod 755 /usr/local/bin/jenkins-slave.sh
-
-ADD https://get.docker.com/builds/Linux/x86_64/docker-1.11.0.tgz /
-
-RUN tar -xvzf /docker-1.11.0.tgz && mv docker/* /usr/bin/
-
-RUN groupadd docker \
-    && usermod -a -G docker jenkins \
-    && usermod -a -G wheel jenkins
-
-# Enable passwordless sudo for users under the "sudo" group
-RUN  sed -i.bkp -e  's/%wheel\s\+ALL=(ALL\(:ALL\)\?)\s\+ALL/%wheel ALL=NOPASSWD:ALL/g' /etc/sudoers
-
-USER jenkins
-
-VOLUME /home/jenkins
-
-ENTRYPOINT ["/usr/local/bin/jenkins-slave.sh"]
+CMD ["/usr/sbin/sshd", "-D"] 
