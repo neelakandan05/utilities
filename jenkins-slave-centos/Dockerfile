@@ -3,6 +3,7 @@ FROM centos:7
 RUN yum -y install git && \
     yum -y install wget && \
     yum -y install sudo && \
+    yum -y install make && \
     yum clean all
   
 RUN echo "root:password" | chpasswd  
@@ -25,6 +26,14 @@ ENV JENKINS_REMOTING_VERSION 2.52
   
 RUN ["java","-version"]
 
+ADD http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.12.linux.bin.tar.gz /
+
+RUN tar -xvzf /doxygen-1.8.12.linux.bin.tar.gz
+
+COPY Makefile doxygen-1.8.12/Makefile
+
+RUN cd doxygen-1.8.12 && make && make install
+
 RUN curl --create-dirs -sSLo /usr/share/jenkins/remoting-$JENKINS_REMOTING_VERSION.jar http://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/$JENKINS_REMOTING_VERSION/remoting-$JENKINS_REMOTING_VERSION.jar \
   && chmod 755 /usr/share/jenkins
 
@@ -36,7 +45,7 @@ ADD https://get.docker.com/builds/Linux/x86_64/docker-1.11.0.tgz /
 
 RUN tar -xvzf /docker-1.11.0.tgz && mv docker/* /usr/bin/
 
-RUN groupadd docker \
+RUN groupadd docker -g 233 \
     && usermod -a -G docker jenkins \
     && usermod -a -G wheel jenkins
 
